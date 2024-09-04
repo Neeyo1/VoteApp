@@ -16,5 +16,6 @@ public class AutoMapperProfiles : Profile
         CreateMap<UserGroup, MemberDto>()
             .ForMember(x => x.Id, y => y.MapFrom(z => z.User.Id))
             .ForMember(x => x.KnownAs, y => y.MapFrom(z => z.User.KnownAs));
+        CreateMap<GroupCreateDto, Group>();
     }
 }

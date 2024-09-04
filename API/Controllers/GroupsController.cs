@@ -23,7 +23,6 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         {
             Name = groupCreateDto.Name,
             Owner = user.UserName,
-            
         };
 
         groupRepository.AddGroup(group);
@@ -32,6 +31,36 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         if (await groupRepository.Complete()) return Ok(mapper.Map<GroupDto>(group));
 
         return BadRequest("Failed to save message");
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> EditGroup(int id, GroupCreateDto groupEditDto)
+    {
+        var group = await groupRepository.GetGroupAsync(id);
+        if (group == null) return Unauthorized();
+
+        mapper.Map(groupEditDto, group);
+
+        if (await groupRepository.Complete()) return NoContent();
+        return BadRequest("Failed to update group");
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteGroup(int id)
+    {
+        var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
+        if (user == null || user.UserName == null) return Unauthorized();
+
+        var group = await groupRepository.GetGroupAsync(id);
+        if (group == null) return Unauthorized();
+
+        if (user.UserName != group.Owner) return Unauthorized();
+
+        groupRepository.DeleteGroup(group);
+
+        if (await groupRepository.Complete()) return Ok();
+
+        return BadRequest("Problem occured while deleting group");
     }
 
     [HttpGet]
