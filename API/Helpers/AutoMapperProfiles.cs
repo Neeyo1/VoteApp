@@ -10,5 +10,11 @@ public class AutoMapperProfiles : Profile
     {
         CreateMap<RegisterDto, AppUser>();
         CreateMap<AppUser, UserDto>();
+        CreateMap<Group, GroupDto>();
+        CreateMap<AppUser, MemberDto>();
+        CreateMap<Poll, PollDto>();
+        CreateMap<UserGroup, MemberDto>()
+            .ForMember(x => x.Id, y => y.MapFrom(z => z.User.Id))
+            .ForMember(x => x.KnownAs, y => y.MapFrom(z => z.User.KnownAs));
     }
 }

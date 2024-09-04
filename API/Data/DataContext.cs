@@ -12,6 +12,7 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
     public DbSet<Group> Groups { get; set; }
     public DbSet<Poll> Polls { get; set; }
     public DbSet<PollOption> PollOptions { get; set; }
+    public DbSet<UserGroup> UserGroups { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -34,22 +35,15 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
         builder.Entity<UserGroup>().HasKey(x => new {x.UserId, x.GroupId});
 
         builder.Entity<AppUser>()
-            .HasMany(x => x.UserGroups)
+            .HasMany(x => x.MemberOf)
             .WithOne(x => x.User)
             .HasForeignKey(x => x.UserId)
             .IsRequired();
 
         builder.Entity<Group>()
-            .HasMany(x => x.UserGroups)
+            .HasMany(x => x.Members)
             .WithOne(x => x.Group)
             .HasForeignKey(x => x.GroupId)
-            .IsRequired();
-
-        //AppUser - Poll
-        builder.Entity<AppUser>()
-            .HasOne(x => x.GroupOwner)
-            .WithOne(x => x.Owner)
-            .HasForeignKey<Group>(x => x.OwnerId)
             .IsRequired();
 
         //Group - Poll

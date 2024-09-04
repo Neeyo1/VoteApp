@@ -3,6 +3,7 @@ using System;
 using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240903153130_ChangeOwnerToString")]
+    partial class ChangeOwnerToString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -358,13 +361,13 @@ namespace API.Data.Migrations
             modelBuilder.Entity("API.Entities.UserGroup", b =>
                 {
                     b.HasOne("API.Entities.Group", "Group")
-                        .WithMany("Members")
+                        .WithMany("UserGroups")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("API.Entities.AppUser", "User")
-                        .WithMany("MemberOf")
+                        .WithMany("UserGroups")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -436,7 +439,7 @@ namespace API.Data.Migrations
 
             modelBuilder.Entity("API.Entities.AppUser", b =>
                 {
-                    b.Navigation("MemberOf");
+                    b.Navigation("UserGroups");
 
                     b.Navigation("UserPollOptions");
 
@@ -445,9 +448,9 @@ namespace API.Data.Migrations
 
             modelBuilder.Entity("API.Entities.Group", b =>
                 {
-                    b.Navigation("Members");
-
                     b.Navigation("Polls");
+
+                    b.Navigation("UserGroups");
                 });
 
             modelBuilder.Entity("API.Entities.Poll", b =>

@@ -3,6 +3,7 @@ using System;
 using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240903143921_FixWrongTyoes")]
+    partial class FixWrongTyoes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -144,11 +147,13 @@ namespace API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Owner")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId")
+                        .IsUnique();
 
                     b.ToTable("Groups");
                 });
@@ -333,6 +338,17 @@ namespace API.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("API.Entities.Group", b =>
+                {
+                    b.HasOne("API.Entities.AppUser", "Owner")
+                        .WithOne("GroupOwner")
+                        .HasForeignKey("API.Entities.Group", "OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("API.Entities.Poll", b =>
                 {
                     b.HasOne("API.Entities.Group", "Group")
@@ -358,13 +374,13 @@ namespace API.Data.Migrations
             modelBuilder.Entity("API.Entities.UserGroup", b =>
                 {
                     b.HasOne("API.Entities.Group", "Group")
-                        .WithMany("Members")
+                        .WithMany("UserGroups")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("API.Entities.AppUser", "User")
-                        .WithMany("MemberOf")
+                        .WithMany("UserGroups")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -436,7 +452,9 @@ namespace API.Data.Migrations
 
             modelBuilder.Entity("API.Entities.AppUser", b =>
                 {
-                    b.Navigation("MemberOf");
+                    b.Navigation("GroupOwner");
+
+                    b.Navigation("UserGroups");
 
                     b.Navigation("UserPollOptions");
 
@@ -445,9 +463,9 @@ namespace API.Data.Migrations
 
             modelBuilder.Entity("API.Entities.Group", b =>
                 {
-                    b.Navigation("Members");
-
                     b.Navigation("Polls");
+
+                    b.Navigation("UserGroups");
                 });
 
             modelBuilder.Entity("API.Entities.Poll", b =>
