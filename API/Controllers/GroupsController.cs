@@ -83,7 +83,7 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         var group = await groupRepository.GetGroupAsync(id);
         if (group == null) return Unauthorized();
 
-        if (!groupRepository.IsUserInGroup(user, group))
+        if (!await groupRepository.IsUserInGroup(user, group.Id))
             return Unauthorized();
 
         return Ok(mapper.Map<GroupDto>(group));
@@ -98,7 +98,7 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
         if (user == null || user.UserName == null) return Unauthorized();
 
-        if (!groupRepository.IsUserInGroup(user, group))
+        if (!await groupRepository.IsUserInGroup(user, group.Id))
             return Unauthorized();
 
         return await groupRepository.GetGroupMembersAsync(group);
@@ -113,7 +113,7 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
         if (user == null || user.UserName == null) return Unauthorized();
 
-        if (!groupRepository.IsUserInGroup(user, group))
+        if (!await groupRepository.IsUserInGroup(user, group.Id))
             return Unauthorized();
 
         if (user.UserName != group.Owner) return Unauthorized();
@@ -122,7 +122,7 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         if (userToEdit == null || userToEdit.UserName == null) return BadRequest("User does not exist");
         if (userToEdit == user) return BadRequest("As owner, you cannot remove yourself from this group");
 
-        if(groupRepository.IsUserInGroup(userToEdit, group))
+        if(await groupRepository.IsUserInGroup(userToEdit, group.Id))
         {
             var userGroup = await groupRepository.GetUserGroup(userToEdit, group);
             if (userGroup == null) return BadRequest("Something went wrong while removing user from group");

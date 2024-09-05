@@ -17,5 +17,7 @@ public class AutoMapperProfiles : Profile
             .ForMember(x => x.Id, y => y.MapFrom(z => z.User.Id))
             .ForMember(x => x.KnownAs, y => y.MapFrom(z => z.User.KnownAs));
         CreateMap<GroupCreateDto, Group>();
+        CreateMap<PollCreateDto, Poll>();
+        CreateMap<Poll, PollDto>();
     }
 }

@@ -13,6 +13,6 @@ public interface IGroupRepository
     Task<bool> Complete();
     void AddUserToGroup(AppUser user, Group group);
     void RemoveUserFromGroup(UserGroup userGroup);
-    bool IsUserInGroup(AppUser user, Group group);
+    Task<bool> IsUserInGroup(AppUser user, int groupId);
     Task<UserGroup?> GetUserGroup(AppUser user, Group group);
 }

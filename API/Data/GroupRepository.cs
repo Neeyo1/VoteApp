@@ -66,9 +66,12 @@ public class GroupRepository(DataContext context, IMapper mapper) : IGroupReposi
         context.UserGroups.Remove(userGroup);
     }
 
-    public bool IsUserInGroup(AppUser user, Group group)
+    public async Task<bool> IsUserInGroup(AppUser user, int groupId)
     {
-        return group.Members.FirstOrDefault(x => x.User.KnownAs == user.KnownAs) != null;
+        //return group.Members.FirstOrDefault(x => x.User.KnownAs == user.KnownAs) != null;
+        return await context.Groups
+            .Include(x => x.Members)
+            .FirstOrDefaultAsync(x => x.Id == groupId) != null;
     }
 
     public async Task<UserGroup?> GetUserGroup(AppUser user, Group group)
