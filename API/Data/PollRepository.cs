@@ -49,6 +49,14 @@ public class PollRepository(DataContext context, IMapper mapper) : IPollReposito
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<ICollection<PollOption>> GetPollOptionsAsync(int id)
+    {
+        return await context.PollOptions
+            .Include(x => x.UserPollOption)
+            .Where(x => x.PollId == id)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<PollDto>> GetPollsForUserAsync(string username)
     {
         return await context.Polls

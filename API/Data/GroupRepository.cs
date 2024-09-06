@@ -71,6 +71,7 @@ public class GroupRepository(DataContext context, IMapper mapper) : IGroupReposi
         //return group.Members.FirstOrDefault(x => x.User.KnownAs == user.KnownAs) != null;
         return await context.Groups
             .Include(x => x.Members)
+            .Where(x => x.Members.Any(y => y.User == user))
             .FirstOrDefaultAsync(x => x.Id == groupId) != null;
     }
 

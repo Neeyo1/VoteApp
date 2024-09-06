@@ -87,7 +87,11 @@ public class PollsController(IUserRepository userRepository, IPollRepository pol
         var members = await groupRepository.GetGroupMembersAsync(poll.Group);
         foreach (var member in members)
         {
-            if (member.Id == user.Id) return Ok(mapper.Map<PollDto>(poll));
+            if (member.Id == user.Id)
+            {
+                poll.PollOptions = await pollRepository.GetPollOptionsAsync(poll.Id);
+                return Ok(mapper.Map<PollDto>(poll));
+            } 
         }
         return Unauthorized();
     }
