@@ -160,6 +160,10 @@ public class PollsController(IUserRepository userRepository, IPollRepository pol
         if (pollOption == null) return Unauthorized();
 
         if (!await groupRepository.IsUserInGroup(user, pollOption.Poll.GroupId)) return Unauthorized();
+
+        if (!pollOption.Poll.HasStarted) return BadRequest("This poll has not started yet");
+        if (pollOption.Poll.HasEnded) return BadRequest("This poll has already ended");
+
         if(await pollRepository.HasUserVoted(user, pollOption.PollId))
             return BadRequest("You have already voted in this poll");
 
@@ -167,5 +171,33 @@ public class PollsController(IUserRepository userRepository, IPollRepository pol
 
         if (await pollRepository.Complete()) return NoContent();
         return BadRequest("Failed to vote");
+    }
+
+    [HttpPost("manage")]
+    public async Task<ActionResult> ManagePoll([FromQuery] int id, string action)
+    {
+        var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
+        if (user == null) return Unauthorized();
+
+        var poll = await pollRepository.GetPollAsync(id);
+        if (poll == null) return Unauthorized();
+
+        if (poll.Group.Owner != user.UserName) return Unauthorized();
+
+        if (action == "start")
+        {
+            if (poll.HasEnded) return BadRequest("Poll has already ended once");
+            if (poll.HasStarted) return BadRequest("Poll has already been started");
+            poll.HasStarted = true;
+        }
+        else if (action == "end")
+        {
+            if (!poll.HasStarted) return BadRequest("Poll has not started yet");
+            if (poll.HasEnded) return BadRequest("Poll has already ended");
+            poll.HasEnded = true;
+        }
+
+        if (await pollRepository.Complete()) return NoContent();
+        return BadRequest("Failed to edit poll");
     }
 }
