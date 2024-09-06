@@ -38,12 +38,15 @@ public class PollRepository(DataContext context, IMapper mapper) : IPollReposito
     {
         return await context.Polls
             .Include(x => x.Group)
+            .Include(x => x.PollOptions)
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<PollOption?> GetPollOptionAsync(int id)
     {
-        return await context.PollOptions.FindAsync(id);
+        return await context.PollOptions
+            .Include(x => x.Poll.Group)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<IEnumerable<PollDto>> GetPollsForUserAsync(string username)
@@ -52,5 +55,22 @@ public class PollRepository(DataContext context, IMapper mapper) : IPollReposito
             .Where(x => x.Group.Members.Any(x => x.User.UserName == username))
             .ProjectTo<PollDto>(mapper.ConfigurationProvider)
             .ToListAsync();
+    }
+
+    public async Task<bool> HasUserVoted(AppUser user, int id)
+    {
+        return await context.UserPollOptions
+            .Where(x => x.User == user)
+            .AnyAsync(x => x.PollOption.PollId == id);
+    }
+
+    public void AddVote(AppUser user, PollOption pollOption)
+    {
+        var userVote = new UserPollOption
+        {
+            UserId = user.Id,
+            PollOptionId = pollOption.Id
+        };
+        context.UserPollOptions.Add(userVote);
     }
 }

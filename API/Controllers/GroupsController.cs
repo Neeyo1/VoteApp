@@ -89,7 +89,7 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         return Ok(mapper.Map<GroupDto>(group));
     }
 
-    [HttpPost("members")]
+    [HttpGet("members")]
     public async Task<ActionResult<IEnumerable<MemberDto>>> GetMembers([FromQuery]int id)
     {
         var group = await groupRepository.GetGroupAsync(id);
@@ -104,7 +104,7 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         return await groupRepository.GetGroupMembersAsync(group);
     }
 
-    [HttpPost("members/edit")]
+    [HttpPost("members")]
     public async Task<ActionResult> EditMembers([FromQuery]int id, string username)
     {
         var group = await groupRepository.GetGroupAsync(id);

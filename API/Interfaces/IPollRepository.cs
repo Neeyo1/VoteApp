@@ -12,5 +12,7 @@ public interface IPollRepository
     void AddPollOption(PollOption pollOption);
     void DeletePollOption(PollOption pollOption);
     Task<PollOption?> GetPollOptionAsync(int id);
+    Task<bool> HasUserVoted(AppUser user, int id);
+    void AddVote(AppUser user, PollOption pollOption);
     Task<bool> Complete();
 }

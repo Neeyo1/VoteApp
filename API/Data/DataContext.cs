@@ -13,6 +13,7 @@ public class DataContext(DbContextOptions options) : IdentityDbContext<AppUser, 
     public DbSet<Poll> Polls { get; set; }
     public DbSet<PollOption> PollOptions { get; set; }
     public DbSet<UserGroup> UserGroups { get; set; }
+    public DbSet<UserPollOption> UserPollOptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

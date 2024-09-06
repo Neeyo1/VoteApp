@@ -91,4 +91,77 @@ public class PollsController(IUserRepository userRepository, IPollRepository pol
         }
         return Unauthorized();
     }
+
+    [HttpPost("options")]
+    public async Task<ActionResult<PollOptionDto>> CreatePollOption(PollOptionCreateDto pollOptionCreateDto, [FromQuery] int id)
+    {
+        var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
+        if (user == null) return Unauthorized();
+
+        var poll = await pollRepository.GetPollAsync(id);
+        if (poll == null) return Unauthorized();
+
+        if (user.UserName != poll.Group.Owner) return Unauthorized();
+
+        var pollOption = mapper.Map<PollOption>(pollOptionCreateDto);
+        pollOption.PollId = poll.Id;
+        
+        pollRepository.AddPollOption(pollOption);
+
+        if (await pollRepository.Complete()) return Ok(mapper.Map<PollOptionDto>(pollOption));
+        return BadRequest("Failed to add poll option");
+    }
+
+    [HttpDelete("options")]
+    public async Task<ActionResult> DeletePollOption([FromQuery] int id)
+    {
+        var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
+        if (user == null) return Unauthorized();
+
+        var pollOption = await pollRepository.GetPollOptionAsync(id);
+        if (pollOption == null) return Unauthorized();
+
+        if (pollOption.Poll.Group.Owner != user.UserName) return Unauthorized();
+
+        pollRepository.DeletePollOption(pollOption);
+
+        if (await pollRepository.Complete()) return NoContent();
+        return BadRequest("Failed to delete poll option");
+    }
+
+    [HttpPut("options")]
+    public async Task<ActionResult> EditPollOption(PollOptionCreateDto pollOptionEditDto, [FromQuery] int id)
+    {
+        var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
+        if (user == null) return Unauthorized();
+
+        var pollOption = await pollRepository.GetPollOptionAsync(id);
+        if (pollOption == null) return Unauthorized();
+
+        if (pollOption.Poll.Group.Owner != user.UserName) return Unauthorized();
+
+        mapper.Map(pollOptionEditDto, pollOption);
+
+        if (await pollRepository.Complete()) return NoContent();
+        return BadRequest("Failed to edit poll option");
+    }
+
+    [HttpPost("options/vote")]
+    public async Task<ActionResult> Vote([FromQuery] int id)
+    {
+        var user = await userRepository.GetUserByUsernameAsync(User.GetUsername());
+        if (user == null) return Unauthorized();
+
+        var pollOption = await pollRepository.GetPollOptionAsync(id);
+        if (pollOption == null) return Unauthorized();
+
+        if (!await groupRepository.IsUserInGroup(user, pollOption.Poll.GroupId)) return Unauthorized();
+        if(await pollRepository.HasUserVoted(user, pollOption.PollId))
+            return BadRequest("You have already voted in this poll");
+
+        pollRepository.AddVote(user, pollOption);
+
+        if (await pollRepository.Complete()) return NoContent();
+        return BadRequest("Failed to vote");
+    }
 }
