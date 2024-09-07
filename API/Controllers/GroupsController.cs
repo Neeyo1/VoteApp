@@ -11,7 +11,7 @@ namespace API.Controllers;
 
 [Authorize]
 public class GroupsController(IUserRepository userRepository, IGroupRepository groupRepository,
-    IMapper mapper) : BaseApiController
+    IMapper mapper, IPollRepository pollRepository) : BaseApiController
 {
     [HttpPost]
     public async Task<ActionResult<GroupDto>> CreateGroup(GroupCreateDto groupCreateDto)
@@ -83,10 +83,14 @@ public class GroupsController(IUserRepository userRepository, IGroupRepository g
         var group = await groupRepository.GetGroupAsync(id);
         if (group == null) return Unauthorized();
 
-        if (!await groupRepository.IsUserInGroup(user, group.Id))
-            return Unauthorized();
-
-        return Ok(mapper.Map<GroupDto>(group));
+        var groupDto = mapper.Map<GroupDto>(group);
+        groupDto.Members = await groupRepository.GetGroupMembersAsync(group);
+        
+        foreach (var member in groupDto.Members)
+        {
+            if (member.Id == user.Id) return Ok(groupDto);
+        }
+        return Unauthorized();
     }
 
     [HttpGet("members")]

@@ -28,6 +28,7 @@ public class GroupRepository(DataContext context, IMapper mapper) : IGroupReposi
     {
         return await context.Groups
             .Include(x => x.Members)
+            .Include(x => x.Polls)
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 
